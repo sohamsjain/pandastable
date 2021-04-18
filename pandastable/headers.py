@@ -35,6 +35,13 @@ from . import util
 from .dialogs import *
 import textwrap
 
+
+
+black='black'
+grey='grey'
+brown='grey25'
+
+
 def createSubMenu(parent, label, commands):
     menu = Menu(parent, tearoff = 0)
     parent.add_cascade(label=label,menu=menu)
@@ -47,8 +54,8 @@ class ColumnHeader(Canvas):
     """Class that takes it's size and rendering from a parent table
         and column names from the table model."""
 
-    def __init__(self, parent=None, table=None, bg='gray25'):
-        Canvas.__init__(self, parent, bg=bg, width=500, height=25)
+    def __init__(self, parent=None, table=None, bg=black):
+        Canvas.__init__(self, parent, bg=bg, highlightthickness=1, highlightbackground=grey, width=500, height=25)
         self.thefont = 'Arial 14'
         if table != None:
             self.table = table
@@ -80,7 +87,7 @@ class ColumnHeader(Canvas):
         return
 
     def setDefaults(self):
-        self.colselectedcolor = '#0099CC'
+        self.colselectedcolor = brown
         self.sort_ascending = 1
         return
 
@@ -148,7 +155,6 @@ class ColumnHeader(Canvas):
             y = h/2
         i=0
         #iterate over index levels
-        col=0
         for level in levels:
             values = df.columns.get_level_values(i)
             for col in self.table.visiblecols:
@@ -184,16 +190,16 @@ class ColumnHeader(Canvas):
                     colname = colname[0:int(length)]
 
                 line = self.create_line(x, 0, x, self.height, tag=('gridline', 'vertline'),
-                                     fill='white', width=1)
+                                     fill=grey, width=1)
                 self.create_text(xt,y,
                                     text=colname,
-                                    fill='white',
+                                    fill=grey,
                                     font=self.thefont,
                                     tag='text', anchor=anchor)
 
             x = self.table.col_positions[col+1]
             self.create_line(x,0, x, self.height, tag='gridline',
-                            fill='white', width=2)
+                            fill=black, width=2)
             i+=1
             y=y+h-2
             #line = self.create_line(0, y, self.tablewidth, y, tag=('gridline', 'vertline'),
@@ -221,7 +227,7 @@ class ColumnHeader(Canvas):
         #also draw a copy of the rect to be dragged
         self.draggedcol = None
         self.drawRect(self.table.currentcol, tag='dragrect',
-                        color='lightblue', outline='white')
+                        color=brown, outline=black)
         if hasattr(self, 'rightmenu') and self.rightmenu != None:
             self.rightmenu.destroy()
         #finally, draw the selected col on the table
@@ -316,32 +322,34 @@ class ColumnHeader(Canvas):
 
     def handle_mouse_move(self, event):
         """Handle mouse moved in header, if near divider draw resize symbol"""
-
-        if len(self.model.df.columns) == 0:
-            return
-        self.delete('resizesymbol')
-        w = self.table.cellwidth
-        h = self.height
-        x_start = self.table.x_start
-        #x = event.x
-        x = int(self.canvasx(event.x))
-        if x > self.tablewidth+w:
-            return
-        #if event x is within x pixels of divider, draw resize symbol
-        nearest = self.within(x, self.table.col_positions, 4)
-
-        if x != x_start and nearest != None:
-            #col = self.table.get_col_clicked(event)
-            col = self.table.col_positions.index(nearest)-1
-            self.nearestcol = col
-            #print (nearest,col,self.model.df.columns[col])
-            if col == None:
+        try:
+            if len(self.model.df.columns) == 0:
                 return
-            self.draw_resize_symbol(col)
-            self.atdivider = 1
-        else:
-            self.atdivider = 0
-        return
+            self.delete('resizesymbol')
+            w = self.table.cellwidth
+            h = self.height
+            x_start = self.table.x_start
+            #x = event.x
+            x = int(self.canvasx(event.x))
+            if x > self.tablewidth+w:
+                return
+            #if event x is within x pixels of divider, draw resize symbol
+            nearest = self.within(x, self.table.col_positions, 4)
+    
+            if x != x_start and nearest != None:
+                #col = self.table.get_col_clicked(event)
+                col = self.table.col_positions.index(nearest)-1
+                self.nearestcol = col
+                #print (nearest,col,self.model.df.columns[col])
+                if col == None:
+                    return
+                self.draw_resize_symbol(col)
+                self.atdivider = 1
+            else:
+                self.atdivider = 0
+            return
+        except AttributeError:
+            return 
 
     def handle_right_release(self, event):
         self.rightmenu.destroy()
@@ -483,9 +491,9 @@ class ColumnHeader(Canvas):
         x_start=self.table.x_start
         x1,y1,x2,y2 = self.table.getCellCoords(0,col)
         self.create_polygon(x2-3,h/4, x2-10,h/2, x2-3,h*3/4, tag='resizesymbol',
-            fill='white', outline='gray', width=wdth)
+            fill=grey, outline='gray', width=wdth)
         self.create_polygon(x2+2,h/4, x2+10,h/2, x2+2,h*3/4, tag='resizesymbol',
-            fill='white', outline='gray', width=wdth)
+            fill=grey, outline='gray', width=wdth)
         return
 
     def drawRect(self,col, tag=None, color=None, outline=None, delete=1):
@@ -516,12 +524,12 @@ class RowHeader(Canvas):
        selection"""
 
     def __init__(self, parent=None, table=None, width=50):
-        Canvas.__init__(self, parent, bg='gray75', width=width, height=None)
+        Canvas.__init__(self, parent, bg=black, highlightthickness=0, highlightbackground=grey, width=width, height=None)
         if table != None:
             self.table = table
             self.width = width
             self.inset = 1
-            self.color = '#C8C8C8'
+            self.color = black
             self.showindex = False
             self.maxwidth = 500
             self.config(height = self.table.height)
@@ -611,10 +619,10 @@ class RowHeader(Canvas):
                 text = row
                 x1,y1,x2,y2 = self.table.getCellCoords(r,0)
                 self.create_rectangle(x,y1,w-1,y2, fill=self.color,
-                                        outline='white', width=1,
+                                        outline=grey, width=1,
                                         tag='rowheader')
                 self.create_text(x+pad,y1+h/2, text=text,
-                                  fill='black', font=self.table.thefont,
+                                  fill=grey, font=self.table.thefont,
                                   tag='text', anchor=align)
                 r+=1
         return
@@ -773,9 +781,9 @@ class RowHeader(Canvas):
         if tag==None:
             tag='rect'
         if color==None:
-            color='#0099CC'
+            color=brown
         if outline==None:
-            outline='gray25'
+            outline=grey
         if delete == 1:
             self.delete(tag)
         w=0
@@ -793,13 +801,13 @@ class IndexHeader(Canvas):
     """Class that displays the row index headings."""
 
     def __init__(self, parent=None, table=None, width=40, height=25):
-        Canvas.__init__(self, parent, bg='gray50', width=width, height=height)
+        Canvas.__init__(self, parent, bg=black, highlightthickness=1, highlightbackground=grey, width=width, height=height)
         if table != None:
             self.table = table
             self.width = width
             self.height = self.table.rowheight
             self.config(height=self.height)
-            self.color = '#C8C8C8'
+            self.color = black
             self.startrow = self.endrow = None
             self.model = self.table.model
             self.bind('<Button-1>',self.handle_left_click)
